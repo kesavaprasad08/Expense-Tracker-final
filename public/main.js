@@ -7,7 +7,7 @@ const signUpHandler = async (e) => {
     const password = document.getElementById("signUpPassword").value;
     const email = document.getElementById("signUpEmail").value;
 
-    const response = await axios.post(`http://localhost:3000/user/signup`, {
+    const response = await axios.post(`http://3.94.254.88:3000/user/signup`, {    
       name,
       password,
       email,
@@ -17,7 +17,7 @@ const signUpHandler = async (e) => {
     document.getElementById("signUpEmail").value = "";
     window.alert("User Added Successfully");
     window.location.href = "/user/login";
-  } catch (e) {
+  } catch (e) {   
     if (e.response.status === 403) {
       const ele = document.getElementById("ErrorMessage");
       ele.className += "block";
