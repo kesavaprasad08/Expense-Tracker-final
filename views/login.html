@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Tracker</title>
+    <link
+      href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header class="flex bg-teal-600 text-white h-16 items-center p-5">
+      <p class="text-lg font-semibold">Expense Tracker</p>
+    </header>
+    <div class="flex p-5 content-center justify-center">
+      <div class="flex flex-col lg:w-4/12 p-8 shadow-lg">
+        <form class="flex flex-col p-8" id="loginForm">
+          <p class="text-center text-teal-600 mb-5 text-lg font-semibold">
+            Login
+          </p>
+          <label></label>
+          <input
+            type="email"
+            class="mb-5 border p-2"
+            placeholder="Enter your E-Mail"
+            required
+            id="signUpEmail"
+            name="email"
+          />
+          <input
+            type="password"
+            class="mb-5 border p-2"
+            placeholder="Password"
+            required
+            id="signUpPassword"
+            name="password"
+          />
+          <button
+            type="submit"
+            class="text-white bg-teal-600 p-2"
+            id="SubmitButton"
+          >
+            Login
+          </button>
+        </form>
+        <p class="text-center mb-2 text-red-500 hidden" id="ErrorMessage"></p>        
+        <a href="/password" class="text-center text-blue-500 mb-2"> Forgot Password
+        </a>
+        <a href="/" class="text-center text-blue-500"> New User ? Sign Up</a>
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+    <script>
+      const err = document.getElementById("ErrorMessage");
+      const SubmitButton = document.getElementById("loginForm");
+      const LoginHandler = async (e) => {
+        try {
+          e.preventDefault();
+
+          const email = e.target.email.value;
+          const password = e.target.password.value;
+          const response = await axios.post(
+            `http://localhost:3000/user/login`,
+            {
+              email,
+              password,
+            }
+          );
+          if (response.data.message === "user found") {
+            window.alert("User Logged in Successfully");
+            window.location.href = "/expense";
+            console.log(response.data);
+            localStorage.setItem("token", response.data.token);
+          }
+        } catch (e) {
+          if (e.response.status === 404) {
+            err.className += "block";
+            err.innerHTML = e.response.data.message;
+          } else {
+            err.className += "block";
+            err.innerHTML =
+              e.response.data.message + " due to incorrect Password";
+          }
+        }
+      };
+      SubmitButton.addEventListener("submit", LoginHandler);
+    </script>
+  </body>
+</html>

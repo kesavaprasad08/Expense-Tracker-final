@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Tracker</title>
+    <link
+      href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header class="flex bg-teal-600 text-white h-16 items-center p-5">
+      <p class="text-lg font-semibold">Expense Tracker</p>
+    </header>
+    <div class="flex p-5 content-center justify-center">
+      <div class="flex flex-col lg:w-11/12 p-8 bg-teal-100 items-center">
+        <h1>Daily Expenses</h1>
+        <form class="border w-11/12 p-2 flex-col">
+          <label class="mt-5" for="date">Select A Date</label>
+          <input class="w-11/12 mt-3" for="date" type="date" />
+          <button class="w-2/12 bg-teal-500 mt-3">Submit</button>
+        </form>
+        <h1 class="text-center font-bold">Daily Expense Table</h1>
+        <div class="flex w-11/12 justify-center items-center mt-5">
+          <table class="flex-col w-11/12">
+            <thead class="bg-teal-500">
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Income</th>
+                <th>Expense</th>
+              </tr>
+            </thead>
+            <tbody class="text-center">
+              <tr class="border bg-teal-200">
+                <td>01-02-2023</td>
+                <td>Milk</td>
+                <td>Food</td>
+                <td></td>
+                <td>60</td>
+              </tr>
+              <tr>
+                <td>04-02-2023</td>
+                <td>Salary</td>
+                <td>Salary</td>
+                <td>40,000</td>
+                <td></td>
+              </tr>
+              <tr class="border bg-teal-200">
+                <td>04-02-2023</td>
+                <td>Fruits</td>
+                <td>Food</td>
+                <td></td>
+                <td>500</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="flex p-5 content-center justify-center">
+      <div class="flex flex-col lg:w-11/12 p-8 bg-teal-100 items-center">
+        <h1>Monthly Expenses</h1>
+        <form class="border w-11/12 p-2 flex-col">
+          <label class="" for="date">Select A Month</label>
+          <input class="w-11/12 mt-2" for="date" type="month" />
+          <button class="w-2/12 bg-teal-500 mt-2">Submit</button>
+        </form>
+        <h1 class="text-center font-bold">Monthly Expense Table</h1>
+        <div class="flex border w-11/12 justify-center items-center mt-3">
+          <table class="flex-col w-11/12">
+            <thead>
+              <tr class="bg-teal-500">
+                <th>Month</th>
+                <th>Income</th>
+                <th>Expense</th>
+                <th>Savings</th>
+              </tr>
+            </thead>
+            <tbody class="text-center">
+              <tr class="border bg-teal-200">
+                <td>jan</td>
+                <td>60000</td>
+                <td>5670</td>
+                <td>54330</td>
+              </tr>
+              <tr>
+                <td>jan</td>
+                <td>60000</td>
+                <td>5670</td>
+                <td>54330</td>
+                <td></td>
+              </tr>
+              <tr class="border bg-teal-200">
+                <td>jan</td>
+                <td>60000</td>
+                <td>5670</td>
+                <td>54330</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+    <script></script>
+  </body>
+</html>

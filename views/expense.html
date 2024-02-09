@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <title>Expense Tracker</title>
+    <link
+      href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header
+      class="flex justify-between bg-teal-600 text-white h-16 items-center p-5"
+    >
+      <p class="text-lg font-semibold">Expense Tracker</p>
+      <p class="hidden" id="premiumMemberStatus">You are a Premium Member !</p>
+      <div id="pre-mem"></div>
+      <button class="bg-yellow-600 border p-2" id="preBtn">
+        Buy Premium Membership
+      </button>
+    </header>
+    <div class="flex p-5 content-center justify-center">
+      <div class="flex flex-col w-11/12 items-center shadow-lg">
+        <p class="text-center text-teal-600 mb-5 text-lg font-semibold">
+          Add Expense
+        </p>
+        <form class="flex flex-wrap p-2" id="AddExpenseForm">
+          <div>
+            <label class="pt-2 mr-2">Choose Expense Amount : Rs. </label>
+            <input
+              type="number"
+              class="border mr-2"
+              placeholder="Enter amount"
+              required
+              id="expenseAmount"
+              name="expenseAmount"
+            />
+          </div>
+          <div>
+            <label class="pt-2 mr-2">Enter Description</label>
+            <input
+              type="text"
+              class="border mr-2"
+              placeholder="Description"
+              required
+              id="Description"
+              name="Description"
+            />
+          </div>
+          <div>
+            <label class="pt-2 mr-2">Choose A Category</label>
+            <select name="Category" class="mr-2 border" id="Category">
+              <option value="Fuel">Fuel</option>
+              <option value="Food">Food</option>
+              <option value="Electricity">Electricity</option>
+              <option value="Movie">Movie</option>
+            </select>
+          </div>
+          <button
+            type="submit"
+            class="text-white bg-teal-600 p-1"
+            id="SubmitButton"
+          >
+            Add Expense
+          </button>
+        </form>
+      </div>
+    </div>
+    
+    <div class="flex justify-center">
+      <p class="text-center">List Of Expenses </p>
+    <div class=" flex items-center  ml-5">
+      <label>Rows Per Page : </label>
+      <select name="limit" id="limit" >
+        <option selected="selected" value="4">4</option>
+        <option value="7">7</option>
+        <option value="10">10</option>
+        <option value="13">13</option>
+        <option value="16">16</option>
+      </select>
+    </div>
+    </div>
+
+    <div class="flex justify-center items-center lg:justify-normal mt-5">
+      
+      <ul id="listOfExpenses" class=" "></ul>
+    </div>
+    <div id="list-body" class=""></div>
+    <ul id="paginationList" class="flex justify-center"></ul>
+    <div class="mt-5 flex justify-center">
+      <button
+        class="text-white ml-5 bg-blue-500 p-1 rounded"
+        id="DownloadFileBtn"
+      >
+        Download File
+      </button>
+    </div>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+    <script>
+      const addExpenseForm = document.getElementById("AddExpenseForm");
+      const expenseList = document.getElementById("listOfExpenses");
+      const premiumBtn = document.getElementById("preBtn");
+      const premiumMemberStatus = document.getElementById(
+        "premiumMemberStatus"
+      );
+      const listBody = document.getElementById("list-body");
+      const DownloadBtn = document.getElementById("DownloadFileBtn");
+
+      // localStorage.setItem('limit',JSON.stringify(4))
+
+      let limit  = JSON.parse(localStorage.getItem('limit'))
+      document.getElementById('limit').value=limit;
+
+      const token = localStorage.getItem("token");
+
+      document.getElementById('limit').addEventListener('click',(e)=>{
+        limit=document.getElementById('limit').value;
+        localStorage.setItem('limit',JSON.stringify(limit))
+        fetchingExpenses(e)
+      }) 
+
+      const showPremiumMessage = () => {
+        premiumBtn.className = "hidden";
+        premiumMemberStatus.className = "bg-yellow-600 p-2";
+      };
+
+      const showLeaderBoard = () => {
+        const lbBtn = document.createElement("button");
+        lbBtn.innerHTML = "Show LeaderBoard";
+        document.getElementById("pre-mem").appendChild(lbBtn);
+        lbBtn.onclick = async () => {
+          try {
+            const response = await axios.get(
+              "http://localhost:3000/premium/leaderBoard",
+              {
+                headers: { Authorization: token },
+              }
+            );
+            listBody.innerHTML = "";
+            listBody.innerHTML += `<div id="leader-table" class='flex flex-col w-11/12 items-center mt-5' >
+              <table class=" align-center w-6/12 text-center border bg-green-100" >
+        <h3 class='mb-2'>Leader Board</h3>
+        <thead class='border'>
+          <tr >
+            <th>Name</th>
+            <th>Total Expenses</th>
+          </tr>
+        </thead>
+        <tbody id='leader-list'>
+        </tbody>
+      </table> </div>`;
+            response.data.expenseList.map((leader) => {
+              document.getElementById("leader-list").innerHTML += `<tr>
+        <td>${leader.Name}</td>
+        <td>${leader.totalExpenses || 0}</td>
+      </tr>`;
+            });
+          } catch (e) {
+            console.log(e);
+          }
+        };
+      };
+
+      //premium
+      const addExpenseToList = (expense) => {
+        const childElement = document.createElement("tr");
+        childElement.setAttribute("id", `expense-${expense._id}`);
+
+        childElement.innerHTML = `<td>${expense.expenseAmount} - </td><td>${expense.description} - </td><td> ${expense.category} </td><td><button type="button" class='text-white ml-5 bg-red-500 p-1 rounded' onClick='handler("${expense.id}")'>Delete</button></td>`;
+
+        expenseList.appendChild(childElement);
+      };
+
+      premiumBtn.addEventListener("click", async (e) => {
+        try {
+          const response = await axios.get(
+            "http://localhost:3000/purchase/premiumMembership",
+            { headers: { Authorization: token } }
+          );
+          console.log(response);
+          const options = {
+            key: response.data.key_id,
+            order_id: response.data.order.id,
+            handler: async (res) => {
+              const curr = await axios.post(
+                "http://localhost:3000/purchase/updateTransactionStatus",
+                {
+                  order_id: options.order_id,
+                  payment_id: res.razorpay_payment_id,
+                },
+                {
+                  headers: { Authorization: token },
+                }
+              );
+              if (curr.data.message === "Transaction SuccessFul") {
+                alert("you are a premium user now");
+                showPremiumMessage();
+                showLeaderBoard();
+              } else {
+                alert("Transaction Failed");
+              }
+            },
+          };
+          const rzpy = new Razorpay(options);
+          rzpy.open();
+          e.preventDefault();
+
+          rzpy.on("payment failed", async (r) => {
+            const failed = await axios.post(
+              "http://localhost:3000/purchase/updateTransactionStatus",
+              {
+                order_id: options.order_id,
+              },
+              {
+                headers: { Authorization: token },
+              }
+            );
+            console.log(
+              "Razorpay response --->",
+              r,
+              "Server response ---->",
+              failed
+            );
+            alert(failed.data.message);
+          });
+        } catch (err) {
+          console.log(err);
+        }
+      });
+
+      const submitHandler = async (e) => {
+        try {
+          e.preventDefault();
+          const expenseAmount = document.getElementById("expenseAmount").value;
+          const Description = document.getElementById("Description").value;
+          const Category = document.getElementById("Category").value;
+          const response = await axios.post(
+            "http://localhost:3000/expense/add-expense",
+            {
+              amount: expenseAmount,
+              description: Description,
+              category: Category,
+            },
+            { headers: { Authorization: token } }
+          );
+          fetchingExpenses();
+        } catch (e) {}
+      };
+      const handler = async (id) => {
+        try {
+          const response = await axios.delete(
+            `http://localhost:3000/expense/delete-expense/${id}`,
+            { headers: { Authorization: token } }
+          );
+          if (response.data.message === "wrong user") {
+            console.log(response.data.message);
+          }
+          console.log("delete");
+          fetchingExpenses();
+        } catch (e) {
+          console.log(e);
+        }
+      };
+      function fetchingExpenses  (e) {
+        axios
+          .get(`http://localhost:3000/expense/get-expense?page=${1}&limit=${limit}`, {
+            headers: { Authorization: token },
+          })
+          .then((res) => {
+            // console.log(res)
+            if (res.data.isPremium) {
+              showPremiumMessage();
+              showLeaderBoard();
+            }
+            expenseList.innerHTML = "";
+            if (res.data.expenses.length > 0) {
+              res.data.expenses.forEach((exp) => {
+                addExpenseToList(exp);
+              });
+            }
+            const ul = document.getElementById("paginationList");
+            ul.innerHTML = "";
+            for (let i = 1; i <= res.data.totalPages; i++) {
+              ul.innerHTML += `<li >
+        <button class=' m-3 p-2 rounded-full bg-teal-200' onclick="pagination(${i})">${i}</button>
+      </li>`;
+            }
+          })
+          .catch((err) => console.log(err));
+      };
+
+      const pagination = async (e) => {
+        try {
+          const response = await axios(
+            `http://localhost:3000/expense/get-expense?page=${e}&limit=${limit}`,
+            {
+              headers: {
+                Authorization: token,
+              },
+            }
+          );
+          expenseList.innerHTML = "";
+          response.data.expenses.map((ex) => {
+            addExpenseToList(ex);
+          });
+        } catch (err) {
+          console.log(err);
+        }
+      };
+
+      addExpenseForm.addEventListener("submit", submitHandler);
+      window.addEventListener("DOMContentLoaded", fetchingExpenses(1));
+
+      DownloadBtn.addEventListener("click", async () => {
+        try {
+          const response = await axios.get(
+            "http://localhost:3000/user/download",
+            {
+              headers: { Authorization: token },
+            }
+          );
+          if ((response.status = 200)) {
+            let a = document.createElement("a");
+            a.href = response.data.fileURL;
+            a.download = "myexpense.csv";
+            a.click();
+          } else {
+            throw new Error(response.data.message);
+          }
+          // console.log(response);
+        } catch (e) {
+          console.log(e);
+          if (e.response.data.fileUrl === "") {
+            window.alert("Download Feature is only for Premium Users");
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
