@@ -270,7 +270,6 @@
             headers: { Authorization: token },
           })
           .then((res) => {
-            // console.log(res)
             if (res.data.isPremium) {
               showPremiumMessage();
               showLeaderBoard();
@@ -330,7 +329,6 @@
           } else {
             throw new Error(response.data.message);
           }
-          // console.log(response);
         } catch (e) {
           console.log(e);
           if (e.response.data.fileUrl === "") {
