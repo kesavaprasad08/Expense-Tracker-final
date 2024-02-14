@@ -134,7 +134,7 @@
         lbBtn.onclick = async () => {
           try {
             const response = await axios.get(
-              "http://3.94.254.88:3000/premium/leaderBoard",
+              "http://3.91.90.24:3000/premium/leaderBoard",
               {
                 headers: { Authorization: token },
               }
@@ -177,7 +177,7 @@
       premiumBtn.addEventListener("click", async (e) => {
         try {
           const response = await axios.get(
-            "http://3.94.254.88:3000/purchase/premiumMembership",
+            "http://3.91.90.24:3000/purchase/premiumMembership",
             { headers: { Authorization: token } }
           );
           console.log(response);
@@ -186,7 +186,7 @@
             order_id: response.data.order.id,
             handler: async (res) => {
               const curr = await axios.post(
-                "http://3.94.254.88:3000/purchase/updateTransactionStatus",
+                "http://3.91.90.24:3000/purchase/updateTransactionStatus",
                 {
                   order_id: options.order_id,
                   payment_id: res.razorpay_payment_id,
@@ -210,7 +210,7 @@
 
           rzpy.on("payment failed", async (r) => {
             const failed = await axios.post(
-              "http://3.94.254.88:3000/purchase/updateTransactionStatus",
+              "http://3.91.90.24:3000/purchase/updateTransactionStatus",
               {
                 order_id: options.order_id,
               },
@@ -252,7 +252,7 @@
       const handler = async (id) => {
         try {
           const response = await axios.delete(
-            `http://3.94.254.88:3000/expense/delete-expense/${id}`,
+            `http://3.91.90.24:3000/expense/delete-expense/${id}`,
             { headers: { Authorization: token } }
           );
           if (response.data.message === "wrong user") {
@@ -266,7 +266,7 @@
       };
       function fetchingExpenses  (e) {
         axios
-          .get(`http://3.94.254.88:3000/expense/get-expense?page=${1}&limit=${limit}`, {
+          .get(`http://3.91.90.24:3000/expense/get-expense?page=${1}&limit=${limit}`, {
             headers: { Authorization: token },
           })
           .then((res) => {
@@ -294,7 +294,7 @@
       const pagination = async (e) => {
         try {
           const response = await axios(
-            `http://3.94.254.88:3000/expense/get-expense?page=${e}&limit=${limit}`,
+            `http://3.91.90.24:3000/expense/get-expense?page=${e}&limit=${limit}`,
             {
               headers: {
                 Authorization: token,
@@ -316,7 +316,7 @@
       DownloadBtn.addEventListener("click", async () => {
         try {
           const response = await axios.get(
-            "http://3.94.254.88:3000/user/download",
+            "http://3.91.90.24:3000/user/download",
             {
               headers: { Authorization: token },
             }

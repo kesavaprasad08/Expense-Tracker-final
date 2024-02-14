@@ -7,7 +7,7 @@ const signUpHandler = async (e) => {
     const password = document.getElementById("signUpPassword").value;
     const email = document.getElementById("signUpEmail").value;
 
-    const response = await axios.post(`http://3.94.254.88:3000/user/signup`, {    
+    const response = await axios.post(`http://3.91.90.24:3000/user/signup`, {    
       name,
       password,
       email,

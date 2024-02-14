@@ -74,7 +74,7 @@ exports.updateTransactionStatus = async (req, res, next) => {
     console.log(error);
     res.status(500).json({
       success: false,
-      message: "Something wentwrong while Updating the Transaction",
+      message: "Something went wrong while Updating the Transaction",
       error: error.err,
     });
   }

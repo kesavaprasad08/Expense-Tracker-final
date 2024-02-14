@@ -112,7 +112,7 @@ exports.resetPassword = async(req,res,next)=>{
             const obj ={
             password
             };
-                        const response = await axios.post('http://3.94.254.88:3000/password/update-password/${reqId}',obj)
+                        const response = await axios.post('http://3.91.90.24:3000/password/update-password/${reqId}',obj)
                         window.alert('Password has been reset please login with new Password to continue')
                         window.location.href = "/user/login";
                     }catch(e){
