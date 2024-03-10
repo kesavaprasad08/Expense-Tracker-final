@@ -130,15 +130,17 @@
       const showLeaderBoard = () => {
         const lbBtn = document.createElement("button");
         lbBtn.innerHTML = "Show LeaderBoard";
+        document.getElementById("pre-mem").innerHTML=''; 
         document.getElementById("pre-mem").appendChild(lbBtn);
         lbBtn.onclick = async () => {
           try {
             const response = await axios.get(
-              "http://3.91.90.24:3000/premium/leaderBoard",
+              "http://localhost:3000/premium/leaderBoard",
               {
                 headers: { Authorization: token },
               }
             );
+            const sortedArr =response.data.expenseList.sort((a,b)=>b.totalExpenses-a.totalExpenses)
             listBody.innerHTML = "";
             listBody.innerHTML += `<div id="leader-table" class='flex flex-col w-11/12 items-center mt-5' >
               <table class=" align-center w-6/12 text-center border bg-green-100" >
@@ -152,9 +154,9 @@
         <tbody id='leader-list'>
         </tbody>
       </table> </div>`;
-            response.data.expenseList.map((leader) => {
+      sortedArr.map((leader) => {
               document.getElementById("leader-list").innerHTML += `<tr>
-        <td>${leader.Name}</td>
+        <td>${leader.name}</td>
         <td>${leader.totalExpenses || 0}</td>
       </tr>`;
             });
@@ -166,10 +168,11 @@
 
       //premium
       const addExpenseToList = (expense) => {
+        console.log(expense);
         const childElement = document.createElement("tr");
         childElement.setAttribute("id", `expense-${expense._id}`);
 
-        childElement.innerHTML = `<td>${expense.expenseAmount} - </td><td>${expense.description} - </td><td> ${expense.category} </td><td><button type="button" class='text-white ml-5 bg-red-500 p-1 rounded' onClick='handler("${expense.id}")'>Delete</button></td>`;
+        childElement.innerHTML = `<td>${expense.expenseAmount} - </td><td>${expense.description} - </td><td> ${expense.category} </td><td><button type="button" class='text-white ml-5 bg-red-500 p-1 rounded' onClick='handler("${expense._id}")'>Delete</button></td>`;
 
         expenseList.appendChild(childElement);
       };
@@ -177,7 +180,7 @@
       premiumBtn.addEventListener("click", async (e) => {
         try {
           const response = await axios.get(
-            "http://3.91.90.24:3000/purchase/premiumMembership",
+            "http://localhost:3000/purchase/premiumMembership",
             { headers: { Authorization: token } }
           );
           console.log(response);
@@ -186,7 +189,7 @@
             order_id: response.data.order.id,
             handler: async (res) => {
               const curr = await axios.post(
-                "http://3.91.90.24:3000/purchase/updateTransactionStatus",
+                "http://localhost:3000/purchase/updateTransactionStatus",
                 {
                   order_id: options.order_id,
                   payment_id: res.razorpay_payment_id,
@@ -210,7 +213,7 @@
 
           rzpy.on("payment failed", async (r) => {
             const failed = await axios.post(
-              "http://3.91.90.24:3000/purchase/updateTransactionStatus",
+              "http://localhost:3000/purchase/updateTransactionStatus",
               {
                 order_id: options.order_id,
               },
@@ -238,7 +241,7 @@
           const Description = document.getElementById("Description").value;
           const Category = document.getElementById("Category").value;
           const response = await axios.post(
-            "http://3.91.90.24:3000/expense/add-expense",
+            "http://localhost:3000/expense/add-expense",
             {
               amount: expenseAmount,
               description: Description,
@@ -247,12 +250,14 @@
             { headers: { Authorization: token } }
           );
           fetchingExpenses();
-        } catch (e) {}
+        } catch (e) {
+          console.log(e)
+        }
       };
       const handler = async (id) => {
         try {
           const response = await axios.delete(
-            `http://3.91.90.24:3000/expense/delete-expense/${id}`,
+            `http://localhost:3000/expense/delete-expense/${id}`,
             { headers: { Authorization: token } }
           );
           if (response.data.message === "wrong user") {
@@ -266,7 +271,7 @@
       };
       function fetchingExpenses  (e) {
         axios
-          .get(`http://3.91.90.24:3000/expense/get-expense?page=${1}&limit=${limit}`, {
+          .get(`http://localhost:3000/expense/get-expense?page=${1}&limit=${limit}`, {
             headers: { Authorization: token },
           })
           .then((res) => {
@@ -294,7 +299,7 @@
       const pagination = async (e) => {
         try {
           const response = await axios(
-            `http://3.91.90.24:3000/expense/get-expense?page=${e}&limit=${limit}`,
+            `http://localhost:3000/expense/get-expense?page=${e}&limit=${limit}`,
             {
               headers: {
                 Authorization: token,
@@ -316,7 +321,7 @@
       DownloadBtn.addEventListener("click", async () => {
         try {
           const response = await axios.get(
-            "http://3.91.90.24:3000/user/download",
+            "http://localhost:3000/user/download",
             {
               headers: { Authorization: token },
             }

@@ -12,77 +12,48 @@ exports.getExpensePage = async (req, res, next) => {
 };
 
 exports.addExpense = async (req, res, next) => {
-  const transac = await sequelize.transaction();
   try {
     const expAmt = req.body.amount;
     const des = req.body.description;
     const cat = req.body.category;
-    await Expense.create(
+    const expense = new Expense(
       {
         expenseAmount: expAmt,
         description: des,
         category: cat,
-        UserId: req.user.id,
-      },
-      {
-        transaction: transac,
+        userId: req.user._id,
       }
     );
-    const user = await User.findOne({ where: { id: req.user.id } });
-    await User.update(
-      { totalExpenses: Number(user.totalExpenses) + Number(expAmt) },
-      { where: { id: req.user.id }, transaction: transac }
-    );
-    await transac.commit();
-
-    return res.status(200).json({ message: "Expense Added" });
+    await expense.save();
+    User.findById(req.user._id).then((user) => {
+      user.totalExpenses = Number(user.totalExpenses) + Number(expAmt);
+      user.save();
+      return res.status(200).json({ message: "Expense Added" });
+    });
   } catch (e) {
-    transac.rollback();
     console.log(e);
   }
 };
 
 exports.deleteExpense = async (req, res, next) => {
-  const user = await User.findOne({ where: { id: req.user.id } });
-  const transac = await sequelize.transaction();
   try {
+    const user = await User.find({ _id: req.user._id });
     const id = req.params.id;
-    const deletedExpense = await Expense.findOne({
-      where: { id: id },
-    });
-    if (!deletedExpense) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Expense not found!" });
-    }
-    await Expense.destroy({
-      where: { id: id },
-      transaction: transac,
-    });
-    const updatedTotalExpenses =
-      Number(user.totalExpenses) -
-      Number(deletedExpense.dataValues.expenseAmount);
-
-    await user.update(
-      {
-        totalExpenses: updatedTotalExpenses,
-      },
-      { where: { id: req.user.id }, transaction: transac }
-    );
-    await transac.commit();
-
+    const deletedExpense = await Expense.findByIdAndDelete(id);
+    req.user.totalExpenses =
+      Number(user[0].totalExpenses) - Number(deletedExpense.expenseAmount);
+    await req.user.save();
     res.status(200).json({ message: "deleted Successfully" });
   } catch (err) {
-    await transac.rollback();
     console.log(err);
     res.status(500).json({ message: err.message });
   }
 };
 
 const uploadToS3 = async (data, fileName) => {
-  const BUCKET_NAME =process.env.BUCKET_NAME ;
-  const IAM_USER_KEY_ =process.env.IAM_USER_KEY_;
-  const IAM_USER_SECRET =process.env.IAM_USER_SECRET;
+  const BUCKET_NAME = process.env.BUCKET_NAME;
+  const IAM_USER_KEY_ = process.env.IAM_USER_KEY_;
+  const IAM_USER_SECRET = process.env.IAM_USER_SECRET;
 
   let s3bucket = new AWS.S3({
     accessKeyId: IAM_USER_KEY_,
@@ -109,12 +80,12 @@ const uploadToS3 = async (data, fileName) => {
 
 exports.downloadExpense = async (req, res, next) => {
   try {
-    const userId = req.user.id;
-    const user = await User.findByPk(userId);
+    const userId = req.user._id;
+    const user = await User.findById(userId);
     if (!user.isPremiumMember) {
       throw new Error("Not a Premium User");
     } else {
-      const expenses = await Expense.findAll({ where: { UserId: userId } });
+      const expenses = await Expense.find({userId: userId });
       const stringifiedExpenses = JSON.stringify(expenses);
       const fileName = `Expenses${userId}/${new Date()}.txt`;
       const fileURL = await uploadToS3(stringifiedExpenses, fileName);
@@ -127,23 +98,22 @@ exports.downloadExpense = async (req, res, next) => {
 exports.getExpensesForPagination = async (req, res, next) => {
   try {
     const pageNo = parseInt(req.query.page);
-    const limit =(parseInt(req.query.limit)||4);
+    const limit = parseInt(req.query.limit) || 4;
     const offset = (pageNo - 1) * limit;
-    const user =await User.findByPk(req.user.id);
-    const totalExpenses = await Expense.count({
-      where: { userId: req.user.id },
-    });
+    const user = await User.findById(req.user._id);
+    const totalExpenses = (await Expense.find({ userId: req.user.id })).length;
     const totalPages = Math.ceil(totalExpenses / limit);
-    const expenses = await Expense.findAll({
-      where: {
-        userId: req.user.id,
-      },
-      offset,
-      limit,
+    const expenses = await Expense.find({
+      userId: req.user.id,
     });
-    res.status(200).json({ success: true, expenses, totalPages,isPremium:user.isPremiumMember });
+    res.status(200).json({
+      success: true,
+      expenses,
+      totalPages,
+      isPremium: user.isPremiumMember,
+    });
   } catch (err) {
     console.log("Error in getExpensesForPagination", err);
-    res.status(500).json({ success: false, message: err  });
+    res.status(500).json({ success: false, message: err });
   }
 };

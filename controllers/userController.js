@@ -19,22 +19,22 @@ exports.addUser = async (req, res, next) => {
     const name = req.body.name;
     const email = req.body.email;
     const password = req.body.password;
-    const check = await User.findAll({
-      attributes: ["Name", "Email", "Password"],
-      where: {
-        Email: email,
-      },
+    const check = await User.find({
+      email: email,
     });
     if (check.length === 0) {
       bcrypt.hash(password, 10, async (err, hash) => {
-        await User.create({
-          Name: name,
-          Email: email,
-          Password: hash,
+        const user = new User({
+          name: name,
+          email: email,
+          password: hash,
           isPremiumMember: false,
-          totalExpenses:0,
+          totalExpenses: 0,
         });
-        res.status(200).json({ message: "User Added" });
+        await user.save();
+
+        console.log(user);
+        return res.status(200).json({ message: "User Added" });
       });
     } else {
       res.status(403).json({ message: "User Already Exist" });
@@ -49,28 +49,19 @@ exports.loginUser = async (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
 
-    const check = await User.findAll({
-      attributes: ["id", "Name", "Email", "Password"],
-      where: {
-        Email: email,
-      },
+    const check = await User.find({
+      email: email,
     });
-
     if (check.length !== 0) {
-      bcrypt.compare(password, check[0].dataValues.Password, (err, result) => {
+      bcrypt.compare(password, check[0].password, (err, result) => {
         if (!result) {
           res.status(500).json({ message: "User not authorized" });
         }
         if (result) {
-          res
-            .status(200)
-            .json({
-              message: "user found",
-              token: generateAccessToken(
-                check[0].dataValues.id,
-                check[0].dataValues.Name
-              ),
-            });
+          res.status(200).json({
+            message: "user found",
+            token: generateAccessToken(check[0]._id, check[0].name),
+          });
         }
       });
     } else {

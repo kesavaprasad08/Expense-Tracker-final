@@ -8,12 +8,17 @@ const ForgotPassword = require('../models/forgotPasswordRequests');
 exports.forgotPassword = async (req, res, next) => {
   try {
     const reqEmail = req.body.email;
-    const user = await User.findOne({where:{email:reqEmail}})
+    const user = await User.find({email:reqEmail})
 
     if(user){
         const id = uuid.v4();
-        await ForgotPassword.create({id,userId:user.id,isActive:true});
-
+        const forgotPassword = new ForgotPassword({
+          userId:user[0]._id,
+          isActive:true,
+          secret:id
+        })
+        const newReq = await forgotPassword.save();
+        // console.log()
     let defaultClient = SibApiV3Sdk.ApiClient.instance;
     let apiKey = defaultClient.authentications["api-key"];
     apiKey.apiKey =process.env.API_KEY;
@@ -42,7 +47,7 @@ exports.forgotPassword = async (req, res, next) => {
       <head></head>
       <body>
       <h1>Password Reset Link</h1>
-      <a href="http://3.94.254.88:3000/password/reset-password/${id}"?><button>Reset Password</button></a>      </body>
+      <a href="http://localhost:3000/password/reset-password/${id}"?><button>Reset Password</button></a>      </body>
       </html>`
     });
 
@@ -59,9 +64,12 @@ exports.forgotPassword = async (req, res, next) => {
 exports.resetPassword = async(req,res,next)=>{
     try{
         const reqId = req.params.id;
-        const request = await ForgotPassword.findOne({where:{id:reqId}})
-        if(request.id===reqId){
-            await request.update({isActive:false})
+        console.log(req.params.id)
+        const request = await ForgotPassword.find({secret:reqId})
+        console.log(request,'requset')
+        if(request[0].secret===reqId){
+          request[0].isActive=false;
+          await request[0].save();
             res.send(`<!DOCTYPE html>
             <html lang="en">
               <head>
@@ -112,7 +120,7 @@ exports.resetPassword = async(req,res,next)=>{
             const obj ={
             password
             };
-                        const response = await axios.post('http://3.91.90.24:3000/password/update-password/${reqId}',obj)
+                        const response = await axios.post('http://localhost:3000/password/update-password/${reqId}',obj)
                         window.alert('Password has been reset please login with new Password to continue')
                         window.location.href = "/user/login";
                     }catch(e){
@@ -129,7 +137,7 @@ exports.resetPassword = async(req,res,next)=>{
     }
     catch(err){
         console.log(err);
-        response.status(500).json({message:err.message})
+        res.status(500).json({message:err.message})
     }
 }
 exports.updatePassword = async(req,res,next)=>{
@@ -137,12 +145,12 @@ exports.updatePassword = async(req,res,next)=>{
         const {password} =req.body;
         const reqId= req.params.id;
 
-        const request = await ForgotPassword.findOne({where:{id:reqId}});
+        const request = await ForgotPassword.find({secret:reqId});
 
         if(!request){
             throw new Error('Invalid Request');
         }
-        const user = await User.findOne({where :{id:request.userId}})
+        const user = await User.findById(request[0].userId)
         if(!password){
             throw new Error('Invalid Password')
         }
@@ -152,7 +160,8 @@ exports.updatePassword = async(req,res,next)=>{
                 if(err){
                     throw new Error('Something Went wrong')
                 }
-                await user.update({Password:hash});
+                 user.password=hash;
+                 user.save();
                 res.status(201).json({message:'New Password Updated Successfully'})
             })
         }else{

@@ -1,19 +1,15 @@
 const express = require("express");
-
+const mongoose = require("mongoose");
 const fs = require("fs");
 
 require("dotenv").config();
 
 const helmet = require("helmet");
-
 const morgan = require("morgan");
-
 const bodyParser = require("body-parser");
-
 const cors = require("cors");
 
 const homePage = require("./routes/home");
-
 const sequelize = require("./util/database");
 
 const app = express();
@@ -24,9 +20,9 @@ const purchaseRoutes = require("./routes/purchase");
 const premiumRoutes = require("./routes/premium");
 const passwordRoutes = require("./routes/password");
 
-const User = require("./models/user");
-const Expense = require("./models/expense");
-const ForgotPassword = require("./models/forgotPasswordRequests");
+// const User = require("./models/user");
+// const Expense = require("./models/expense");
+// const ForgotPassword = require("./models/forgotPasswordRequests");
 const path = require("path");
 
 const accessLogStream = fs.createWriteStream(
@@ -34,17 +30,18 @@ const accessLogStream = fs.createWriteStream(
   { flags: "a" }
 );
 
-app.use(helmet({
-  contentSecurityPolicy: false,
-}));
-app.use(morgan("combined",{stream:accessLogStream}));
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  })
+);
+app.use(morgan("combined", { stream: accessLogStream }));
 
 app.use(bodyParser.json());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cors());
-console.log('here')
 
 app.use(express.static("public"));
 app.use("/user", userRoutes);
@@ -54,11 +51,12 @@ app.use("/premium", premiumRoutes);
 app.use("/password", passwordRoutes);
 app.use(homePage);
 
-User.hasMany(Expense);
-Expense.belongsTo(User);
-sequelize
-  .sync({ force: false })
-  .then(() => {
+// User.hasMany(Expense);
+// Expense.belongsTo(User);
+
+
+mongoose.connect( "mongodb+srv://kesav:rollno1212@cluster0.cedis9y.mongodb.net/expense?retryWrites=true&w=majority&appName=Cluster0")
+  .then((res) => {
     app.listen(process.env.PORT);
   })
   .catch((e) => console.log(e));

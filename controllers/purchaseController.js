@@ -42,19 +42,21 @@ exports.purchasePremium = (req, res, next) => {
 exports.updateTransactionStatus = async (req, res, next) => {
   const { payment_id, order_id } = req.body;
   try {
-    const order = await Order.findOne({ where: { orderId: order_id } });
+    const order = await Order.find({ orderId: order_id });
+    // console.log(order);   
     if (!payment_id) {
-      order.update({ status: "FAILED" }).then(() => {
+      order[0].status='FAILED' 
+      await order[0].save();
         return res
           .status(203)
           .json({ success: true, message: "Transaction failed" });
-      });
+      
     } else {
-      const promise1 = await order.update({
-        paymentId: payment_id,
-        status: "SUCCESSFUL",
-      });
-      const user = await User.findByPk(req.user.id);
+
+      order[0].paymentId= payment_id;
+      order[0].status= "SUCCESSFUL";
+      const promise1 = await order[0].save();
+      const user = await User.findById(req.user._id);
       user.isPremiumMember = true;
       const userUpdate = await user.save();
       Promise.all([promise1, userUpdate])
