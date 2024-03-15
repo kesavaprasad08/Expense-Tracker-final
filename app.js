@@ -10,7 +10,6 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 
 const homePage = require("./routes/home");
-const sequelize = require("./util/database");
 
 const app = express();
 
@@ -20,9 +19,6 @@ const purchaseRoutes = require("./routes/purchase");
 const premiumRoutes = require("./routes/premium");
 const passwordRoutes = require("./routes/password");
 
-// const User = require("./models/user");
-// const Expense = require("./models/expense");
-// const ForgotPassword = require("./models/forgotPasswordRequests");
 const path = require("path");
 
 const accessLogStream = fs.createWriteStream(
@@ -51,11 +47,8 @@ app.use("/premium", premiumRoutes);
 app.use("/password", passwordRoutes);
 app.use(homePage);
 
-// User.hasMany(Expense);
-// Expense.belongsTo(User);
 
-
-mongoose.connect( "mongodb+srv://kesav:rollno1212@cluster0.cedis9y.mongodb.net/expense?retryWrites=true&w=majority&appName=Cluster0")
+mongoose.connect(process.env.MONGO_CONNECT)
   .then((res) => {
     app.listen(process.env.PORT);
   })
